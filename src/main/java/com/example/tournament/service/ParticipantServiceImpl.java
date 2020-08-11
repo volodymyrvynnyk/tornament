@@ -1,77 +1,79 @@
 package com.example.tournament.service;
 
-import com.example.tournament.dto.PageDto;
-import com.example.tournament.dto.ParticipantCreateForm;
 import com.example.tournament.dto.ParticipantDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.mapper.ParticipantMapper;
 import com.example.tournament.model.Participant;
 import com.example.tournament.repository.ParticipantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
 
+    private final DataHelperService dataHelperService;
+
     private final ParticipantMapper participantMapper;
 
-    private final static String BAD_ID_EXCEPTION = "There is no participant with this id";
 
     @Autowired
-    public ParticipantServiceImpl(ParticipantRepository participantRepository, ParticipantMapper participantMapper) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, DataHelperService dataHelperService,
+                                  ParticipantMapper participantMapper) {
         this.participantRepository = participantRepository;
+        this.dataHelperService = dataHelperService;
         this.participantMapper = participantMapper;
     }
 
+
     @Override
-    public PageDto<ParticipantDto> findAll(Pageable pageable) {
+    public List<ParticipantDto> findAllByTournamentId(Long tournamentId) {
 
-        Page<Participant> participantPage = participantRepository.findAll(pageable);
+        dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
-        return new PageDto<ParticipantDto>().toBuilder()
-                .pageNumber(participantPage.getNumber())
-                .totalPages(participantPage.getTotalPages())
-                .content(participantMapper.participantListToDto(participantPage.getContent()))
-                .build();
+        List<Participant> participants = participantRepository.findAllByTournamentId(tournamentId);
+
+        return participantMapper.participantListToDto(participants);
     }
 
     @Override
-    public void create(ParticipantCreateForm participantCreateForm) {
+    public int countByTournamentId(Long tournamentId) {
+        return participantRepository.countByTournamentId(tournamentId);
+    }
 
-        if (participantRepository.existsByName(participantCreateForm.getName())) {
-            throw new ServiceException(String.format("Participant '%s' already exists",
-                    participantCreateForm.getName()));
+
+    @Override
+    public ParticipantDto findById(Long id) {
+
+        Participant participant = dataHelperService.findParticipantByIdOrThrowException(id);
+
+        return participantMapper.participantToDto(participant);
+    }
+
+    @Override
+    public void create(String name, long tournamentId) {
+
+        if (participantRepository.existsByNameAndTournamentId(name, tournamentId)) {
+            throw new ServiceException(String.format("Participant with name '%s' already exists in this tournament", name));
         }
 
-        Participant participant = Participant.builder()
-                .name(participantCreateForm.getName())
-                .build();
-
-        participantRepository.save(participant);
+        participantRepository.save(Participant.builder()
+                .name(name)
+                .tournamentId(tournamentId)
+                .build());
     }
-
 
     @Override
     public void delete(Long id) {
-
-        if (!participantRepository.existsById(id)) {
-            throw new ServiceException(BAD_ID_EXCEPTION);
-        }
 
         participantRepository.deleteById(id);
     }
 
     @Override
-    public ParticipantDto findById(Long id) {
-
-        Participant participant = participantRepository.findById(id).orElseThrow(() ->
-                new ServiceException(BAD_ID_EXCEPTION));
-
-        return participantMapper.participantToDto(participant);
+    public void deleteAllByTournamentId(Long tournamentId) {
+        participantRepository.deleteAllByTournamentId(tournamentId);
     }
-
 }

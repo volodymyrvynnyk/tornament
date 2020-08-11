@@ -13,6 +13,7 @@ public class ParticipantMapper {
     public ParticipantDto participantToDto(Participant participant) {
         return ParticipantDto.builder()
                 .id(participant.getId())
+                .tournamentId(participant.getTournamentId())
                 .name(participant.getName())
                 .build();
     }

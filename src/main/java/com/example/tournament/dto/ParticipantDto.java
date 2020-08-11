@@ -10,5 +10,8 @@ public class ParticipantDto {
 
     private Long id;
 
+    private Long tournamentId;
+
     private String name;
+
 }

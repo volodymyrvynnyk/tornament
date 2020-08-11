@@ -23,5 +23,7 @@ public class Participant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long tournamentId;
+
     private String name;
 }

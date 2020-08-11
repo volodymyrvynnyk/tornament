@@ -1,18 +1,21 @@
 package com.example.tournament.service;
 
-import com.example.tournament.dto.PageDto;
-import com.example.tournament.dto.ParticipantCreateForm;
 import com.example.tournament.dto.ParticipantDto;
-import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface ParticipantService {
 
-    PageDto<ParticipantDto> findAll(Pageable pageable);
+    List<ParticipantDto> findAllByTournamentId(Long tournamentId);
 
-    void create(ParticipantCreateForm participantCreateForm);
+    int countByTournamentId(Long tournamentId);
+
+    ParticipantDto findById(Long id);
+
+    void create(String name, long tournamentId);
 
     void delete(Long id);
 
-    ParticipantDto findById(Long id);
+    void deleteAllByTournamentId(Long tournamentId);
 
 }
