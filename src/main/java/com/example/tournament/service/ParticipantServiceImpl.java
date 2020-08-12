@@ -1,6 +1,6 @@
 package com.example.tournament.service;
 
-import com.example.tournament.dto.ParticipantDto;
+import com.example.tournament.dto.response.ParticipantDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.mapper.ParticipantMapper;
 import com.example.tournament.model.Participant;

@@ -1,4 +1,4 @@
-package com.example.tournament.dto;
+package com.example.tournament.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

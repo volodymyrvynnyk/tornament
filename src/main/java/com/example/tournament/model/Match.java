@@ -1,6 +1,9 @@
 package com.example.tournament.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,12 +14,17 @@ import java.time.LocalTime;
 
 @Data
 @Entity
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "matches")
 public class Match {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private char label;
 
     private Long tournamentId;
 
@@ -28,8 +36,15 @@ public class Match {
 
     private int secondParticipantScore;
 
+    private Long winnerId;
+
+    private char nextMatchLabel;
+
     private LocalTime startTime;
 
     private LocalTime finishTime;
+
+//    @Enumerated(EnumType.STRING)
+//    private MatchStatus status;
 
 }

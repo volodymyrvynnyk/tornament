@@ -1,4 +1,4 @@
-package com.example.tournament.dto;
+package com.example.tournament.dto.form;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ParticipantsRemoveForm {
+public class ParticipantsAddForm {
 
-    private List<Long> idList;
+    private List<String> names;
 }

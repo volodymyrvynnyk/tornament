@@ -1,6 +1,6 @@
 package com.example.tournament.mapper;
 
-import com.example.tournament.dto.TournamentDto;
+import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.model.Tournament;
 import org.springframework.stereotype.Component;
 

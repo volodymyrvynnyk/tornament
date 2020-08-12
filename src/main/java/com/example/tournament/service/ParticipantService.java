@@ -1,6 +1,6 @@
 package com.example.tournament.service;
 
-import com.example.tournament.dto.ParticipantDto;
+import com.example.tournament.dto.response.ParticipantDto;
 
 import java.util.List;
 

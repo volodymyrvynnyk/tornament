@@ -1,10 +1,11 @@
 package com.example.tournament.controller;
 
 
-import com.example.tournament.dto.ParticipantsAddForm;
-import com.example.tournament.dto.ParticipantsRemoveForm;
-import com.example.tournament.dto.TournamentCreateForm;
-import com.example.tournament.dto.TournamentDto;
+import com.example.tournament.dto.form.ParticipantsAddForm;
+import com.example.tournament.dto.form.ParticipantsRemoveForm;
+import com.example.tournament.dto.form.TournamentCreateForm;
+import com.example.tournament.dto.response.MatchDto;
+import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RepositoryRestController
 @RequestMapping(value = "/tournaments", produces = MediaType.APPLICATION_JSON_VALUE)
 public class TournamentController {
 
@@ -58,5 +58,10 @@ public class TournamentController {
     @PostMapping("/{id}/remove")
     public void removeParticipants(@PathVariable Long id, @RequestBody ParticipantsRemoveForm participantsRemoveForm) {
         tournamentService.removeParticipants(id, participantsRemoveForm);
+    }
+
+    @PostMapping("{id}/start")
+    public List<MatchDto> start(@PathVariable Long id) {
+        return tournamentService.start(id);
     }
 }

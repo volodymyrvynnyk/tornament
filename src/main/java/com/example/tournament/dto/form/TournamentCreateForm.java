@@ -1,4 +1,4 @@
-package com.example.tournament.dto;
+package com.example.tournament.dto.form;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,5 +16,4 @@ public class TournamentCreateForm {
 
     private int maxNumberOfParticipants;
 
-    private int numberOfSingleEliminationMatches;
 }

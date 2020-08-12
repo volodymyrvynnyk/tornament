@@ -1,6 +1,6 @@
 package com.example.tournament.controller;
 
-import com.example.tournament.dto.ParticipantDto;
+import com.example.tournament.dto.response.ParticipantDto;
 import com.example.tournament.service.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RepositoryRestController
 @RequestMapping(value = "/participants", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ParticipantController {
 
