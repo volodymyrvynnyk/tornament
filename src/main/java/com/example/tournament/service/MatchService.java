@@ -12,7 +12,11 @@ public interface MatchService {
 
     void saveAll(List<Match> matches);
 
-    void update(MatchUpdateForm matchUpdateForm);
+    void start(Long id);
+
+    void update(Long id, MatchUpdateForm matchUpdateForm);
 
     void deleteAllByTournamentId(Long tournamentId);
+
+    void disqualifyParticipant(Long participantId);
 }

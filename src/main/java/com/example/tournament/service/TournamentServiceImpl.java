@@ -1,7 +1,6 @@
 package com.example.tournament.service;
 
 import com.example.tournament.dto.form.ParticipantsAddForm;
-import com.example.tournament.dto.form.ParticipantsRemoveForm;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.ParticipantDto;
@@ -88,13 +87,10 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
-    public void removeParticipants(Long tournamentId, ParticipantsRemoveForm participantsRemoveForm) {
+    public void removeParticipant(Long tournamentId, Long participantId) {
 
-        participantsRemoveForm.getIdList().forEach(participantId -> {
-            if (participantService.findById(participantId).getTournamentId().equals(tournamentId)) {
-                participantService.delete(participantId);
-            }
-        });
+        matchService.disqualifyParticipant(participantId);
+        participantService.findById(participantId);
 
     }
 
@@ -131,8 +127,6 @@ public class TournamentServiceImpl implements TournamentService {
                         .label(label++)
                         .firstParticipantId(participants.get(i * 2).getId())
                         .secondParticipantId(participants.get(i * 2 + 1).getId())
-                        .firstParticipantScore(0)
-                        .secondParticipantScore(0)
                         .build()
                 );
             } else {
@@ -141,7 +135,6 @@ public class TournamentServiceImpl implements TournamentService {
                             .tournamentId(tournament.getId())
                             .label(label++)
                             .firstParticipantId(participants.get(i * 2).getId())
-                            .firstParticipantScore(0)
                             .build()
                     );
                 } else {

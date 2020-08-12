@@ -1,5 +1,6 @@
 package com.example.tournament.model;
 
+import com.example.tournament.exception.ServiceException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalTime;
+
+import static java.util.Objects.isNull;
 
 @Data
 @Entity
@@ -44,7 +47,16 @@ public class Match {
 
     private LocalTime finishTime;
 
-//    @Enumerated(EnumType.STRING)
-//    private MatchStatus status;
+    public void addParticipant(Long participantId) {
+        if (isNull(firstParticipantId)) {
+            firstParticipantId = participantId;
+        } else {
+            if (isNull(secondParticipantId)) {
+                secondParticipantId = participantId;
+            } else {
+                throw new ServiceException(String.format("Match (id '%s') already has got 2 participants", this.id));
+            }
+        }
+    }
 
 }

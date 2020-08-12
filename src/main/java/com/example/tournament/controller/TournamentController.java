@@ -8,7 +8,6 @@ import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,7 +56,7 @@ public class TournamentController {
 
     @PostMapping("/{id}/remove")
     public void removeParticipants(@PathVariable Long id, @RequestBody ParticipantsRemoveForm participantsRemoveForm) {
-        tournamentService.removeParticipants(id, participantsRemoveForm);
+        tournamentService.removeParticipant(id, participantsRemoveForm);
     }
 
     @PostMapping("{id}/start")

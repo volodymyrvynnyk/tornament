@@ -1,7 +1,6 @@
 package com.example.tournament.service;
 
 import com.example.tournament.dto.form.ParticipantsAddForm;
-import com.example.tournament.dto.form.ParticipantsRemoveForm;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.TournamentDto;
@@ -22,7 +21,7 @@ public interface TournamentService {
 
     void addParticipants(Long tournamentId, ParticipantsAddForm participantsAddForm);
 
-    void removeParticipants(Long tournamentId, ParticipantsRemoveForm participantsRemoveForm);
+    void removeParticipant(Long tournamentId, Long participantId);
 
 
 }
