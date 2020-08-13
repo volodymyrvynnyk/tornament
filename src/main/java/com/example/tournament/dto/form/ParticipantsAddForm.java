@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Data
@@ -11,5 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ParticipantsAddForm {
 
+    @Size(min = 1, message = "Min size of participants to add is 1")
     private List<String> names;
 }

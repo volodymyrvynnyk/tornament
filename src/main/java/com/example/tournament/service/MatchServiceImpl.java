@@ -9,6 +9,8 @@ import com.example.tournament.model.Match;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.MatchRepository;
 import com.example.tournament.util.mapper.MatchMapper;
+import com.example.tournament.util.validation.DataValidator;
+import com.example.tournament.util.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,13 +35,16 @@ public class MatchServiceImpl implements MatchService {
 
     private final MatchMapper matchMapper;
 
+    private final DataValidator dataValidator;
+
     private static final String REF_TO_PREV_MATCH_MESSAGE = "Winner of match '%s'";
 
     @Autowired
-    public MatchServiceImpl(MatchRepository matchRepository, DataHelperService dataHelperService, MatchMapper matchMapper) {
+    public MatchServiceImpl(MatchRepository matchRepository, DataHelperService dataHelperService, MatchMapper matchMapper, DataValidator dataValidator) {
         this.matchRepository = matchRepository;
         this.dataHelperService = dataHelperService;
         this.matchMapper = matchMapper;
+        this.dataValidator = dataValidator;
     }
 
     @Override
@@ -103,6 +108,12 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchDto update(Long tournamentId, Long matchId, MatchUpdateForm matchUpdateForm) {
+
+        ValidationResult validationResult = dataValidator.validate(matchUpdateForm);
+
+        if (validationResult.isError()) {
+            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
+        }
 
         Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(matchId);
 
@@ -223,7 +234,6 @@ public class MatchServiceImpl implements MatchService {
                     );
                 }
             }
-
         }
 
         label = (char) ('A' + participants.size() / 2); //Second tour label

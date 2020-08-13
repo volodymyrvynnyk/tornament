@@ -46,9 +46,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     public List<ParticipantDto> findAllByTournamentId(Long tournamentId) {
 
-        dataHelperService.findTournamentByIdOrThrowException(tournamentId);
+        Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
-        List<Participant> participants = participantRepository.findAllByTournamentId(tournamentId);
+        List<Participant> participants = participantRepository.findAllByTournamentId(tournament.getId());
 
         return participantMapper.participantListToDto(participants);
     }
@@ -63,6 +63,11 @@ public class ParticipantServiceImpl implements ParticipantService {
     public ParticipantDto findById(Long tournamentId, Long participantId) {
 
         Participant participant = dataHelperService.findParticipantByIdOrThrowException(participantId);
+
+        if (!participant.getTournamentId().equals(tournamentId)) {
+            throw new ServiceException(String.format("Participant (id '%s') doesn't belong to Tournament (id '%s')",
+                    participant.getId(), tournamentId));
+        }
 
         return participantMapper.participantToDto(participant);
     }
