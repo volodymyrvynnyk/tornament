@@ -14,4 +14,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     boolean existsByNameAndTournamentId(String name, Long tournamentId);
 
     void deleteAllByTournamentId(Long tournamentId);
+
+    void deleteByTournamentIdAndId(Long tournamentId, Long id);
 }

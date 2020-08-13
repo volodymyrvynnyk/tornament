@@ -13,7 +13,7 @@ import javax.persistence.Table;
 
 @Data
 @Entity
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "tournaments")
@@ -28,4 +28,6 @@ public class Tournament {
     private int maxNumberOfParticipants;
 
     private int numberOfSingleEliminationMatches;
+
+    private EventStatus status;
 }

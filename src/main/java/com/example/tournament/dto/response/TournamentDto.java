@@ -1,5 +1,6 @@
 package com.example.tournament.dto.response;
 
+import com.example.tournament.model.EventStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,4 +17,6 @@ public class TournamentDto {
     private int maxNumberOfParticipants;
 
     private int numberOfSingleEliminationMatches;
+
+    private EventStatus status;
 }

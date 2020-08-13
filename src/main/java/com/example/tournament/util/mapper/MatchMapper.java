@@ -1,4 +1,4 @@
-package com.example.tournament.mapper;
+package com.example.tournament.util.mapper;
 
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.model.Match;
@@ -22,6 +22,7 @@ public class MatchMapper {
                 .winnerId(match.getWinnerId())
                 .start(match.getStartTime())
                 .finish(match.getFinishTime())
+                .status(match.getStatus())
                 .build();
     }
 

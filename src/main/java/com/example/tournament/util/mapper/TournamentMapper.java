@@ -1,4 +1,4 @@
-package com.example.tournament.mapper;
+package com.example.tournament.util.mapper;
 
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.model.Tournament;
@@ -16,6 +16,7 @@ public class TournamentMapper {
                 .title(tournament.getTitle())
                 .maxNumberOfParticipants(tournament.getMaxNumberOfParticipants())
                 .numberOfSingleEliminationMatches(tournament.getNumberOfSingleEliminationMatches())
+                .status(tournament.getStatus())
                 .build();
     }
 

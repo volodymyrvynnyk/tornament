@@ -1,5 +1,6 @@
 package com.example.tournament.dto.response;
 
+import com.example.tournament.model.EventStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +35,8 @@ public class MatchDto {
     private LocalTime start;
 
     private LocalTime finish;
+
+    private EventStatus status;
 
 
 }

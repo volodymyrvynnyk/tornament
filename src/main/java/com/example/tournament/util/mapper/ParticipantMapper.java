@@ -1,4 +1,4 @@
-package com.example.tournament.mapper;
+package com.example.tournament.util.mapper;
 
 import com.example.tournament.dto.response.ParticipantDto;
 import com.example.tournament.model.Participant;

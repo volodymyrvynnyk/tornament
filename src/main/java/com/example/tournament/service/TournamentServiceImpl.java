@@ -1,23 +1,22 @@
 package com.example.tournament.service;
 
-import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.ParticipantDto;
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.exception.ServiceException;
-import com.example.tournament.mapper.TournamentMapper;
+import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.TournamentRepository;
+import com.example.tournament.util.mapper.TournamentMapper;
+import com.example.tournament.util.validation.DataValidator;
+import com.example.tournament.util.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class TournamentServiceImpl implements TournamentService {
@@ -32,13 +31,18 @@ public class TournamentServiceImpl implements TournamentService {
 
     private final TournamentMapper tournamentMapper;
 
+    private final DataValidator dataValidator;
+
     @Autowired
-    public TournamentServiceImpl(TournamentRepository tournamentRepository, ParticipantService participantService, MatchService matchService, DataHelperService dataHelperService, TournamentMapper tournamentMapper) {
+    public TournamentServiceImpl(TournamentRepository tournamentRepository, ParticipantService participantService,
+                                 MatchService matchService, DataHelperService dataHelperService,
+                                 TournamentMapper tournamentMapper, DataValidator dataValidator) {
         this.tournamentRepository = tournamentRepository;
         this.participantService = participantService;
         this.matchService = matchService;
         this.dataHelperService = dataHelperService;
         this.tournamentMapper = tournamentMapper;
+        this.dataValidator = dataValidator;
     }
 
 
@@ -68,135 +72,75 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
-    public void addParticipants(Long tournamentId, ParticipantsAddForm participantsAddForm) {
-
-        Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
-
-        int numberOfParticipants = participantService.countByTournamentId(tournamentId);
-
-        if (numberOfParticipants + participantsAddForm.getNames().size() > tournament.getMaxNumberOfParticipants()) {
-            throw new ServiceException(String.format(
-                    "Tournament '%s' can't get these participators. Limit will be exceeded", tournament.getTitle()));
-        }
-
-        participantsAddForm.getNames().forEach(participantName -> {
-            participantService.create(participantName, tournament.getId());
-        });
-
-    }
-
-    @Override
-    @Transactional
-    public void removeParticipant(Long tournamentId, Long participantId) {
-
-        matchService.disqualifyParticipant(participantId);
-        participantService.findById(participantId);
-
-    }
-
-    @Override
-    @Transactional
     public List<MatchDto> start(Long id) {
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(id);
 
         int participantsNumber = participantService.countByTournamentId(id);
-        tournament.setNumberOfSingleEliminationMatches(participantsNumber - 1);
 
-        tournamentRepository.save(tournament);
+        if (participantsNumber < 2) {
+            throw new ServiceException("Tournament (id '%s') must contain at least 2 participants");
+        }
 
-        List<ParticipantDto> participants = participantService.findAllByTournamentId(tournament.getId());
-        List<Match> matches = generateMatches(participants, tournament);
+        Tournament updatedTournament = tournament.toBuilder()
+                .numberOfSingleEliminationMatches(participantsNumber - 1)
+                .status(EventStatus.STARTED)
+                .build();
+
+        tournamentRepository.save(updatedTournament);
+
+        List<ParticipantDto> participants = participantService.findAllByTournamentId(updatedTournament.getId());
+        List<Match> matches = matchService.generateMatches(participants, tournament);
         matchService.saveAll(matches);
 
         return matchService.findAllByTournament(tournament.getId());
     }
 
-    public List<Match> generateMatches(List<ParticipantDto> participants, Tournament tournament) {
-
-        Collections.shuffle(participants);
-
-        List<Match> matches = new ArrayList<>(tournament.getNumberOfSingleEliminationMatches());
-
-        char label = 'A';
-
-        for (int i = 0; i < tournament.getNumberOfSingleEliminationMatches(); i++) {
-            if (i < participants.size() / 2) {
-                matches.add(Match.builder()
-                        .tournamentId(tournament.getId())
-                        .label(label++)
-                        .firstParticipantId(participants.get(i * 2).getId())
-                        .secondParticipantId(participants.get(i * 2 + 1).getId())
-                        .build()
-                );
-            } else {
-                if (participants.size() > i * 2) {
-                    matches.add(Match.builder()
-                            .tournamentId(tournament.getId())
-                            .label(label++)
-                            .firstParticipantId(participants.get(i * 2).getId())
-                            .build()
-                    );
-                } else {
-                    matches.add(Match.builder()
-                            .tournamentId(tournament.getId())
-                            .label(label++)
-                            .build()
-                    );
-                }
-            }
-
-        }
-
-        label = (char) ('A' + participants.size() / 2); //Second tour label
-
-        for (Match match : matches) {
-
-            final char ctemp = label;
-
-            long numberOfMatchesFollowed = matches.stream().filter(m -> m.getNextMatchLabel() == ctemp).count();
-            Match matchToFollow = matches.stream().filter(m -> m.getLabel() == ctemp).findFirst().get();
-
-            if (Objects.nonNull(matchToFollow.getFirstParticipantId())) {
-                numberOfMatchesFollowed++;
-            }
-            if (Objects.nonNull(matchToFollow.getSecondParticipantId())) {
-                numberOfMatchesFollowed++;
-            }
-            if (numberOfMatchesFollowed == 2) {
-                label++;
-            }
-
-            if (matches.size() - 1 != matches.indexOf(match)){
-                match.setNextMatchLabel(label);
-            }
-
-        }
-
-        return matches;
-
-    }
 
     @Override
-    public void create(TournamentCreateForm tournamentCreateForm) {
+    public TournamentDto create(TournamentCreateForm tournamentCreateForm) {
 
-        Tournament tournament = tournamentFormToTournament(tournamentCreateForm);
+        ValidationResult validationResult = dataValidator.validate(tournamentCreateForm);
 
-        tournamentRepository.save(tournament);
-    }
-
-    private Tournament tournamentFormToTournament(TournamentCreateForm tournamentCreateForm) {
+        if (validationResult.isError()) {
+            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
+        }
 
         if (tournamentCreateForm.getMaxNumberOfParticipants() % 8 != 0) {
             throw new ServiceException("Tournament's max number of participants must be multiples of 8");
         }
 
-        return Tournament.builder()
+        Tournament tournament = Tournament.builder()
                 .title(tournamentCreateForm.getTitle())
                 .maxNumberOfParticipants(tournamentCreateForm.getMaxNumberOfParticipants())
+                .status(EventStatus.PENDING)
                 .build();
 
+        Tournament tournamentFromDb = tournamentRepository.save(tournament);
+
+        return tournamentMapper.tournamentToDto(tournamentFromDb);
     }
+
+    @Override
+    public Long summarize(Long id) {
+
+        Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(id);
+
+        Match finalMatch = matchService.findFinalMatchByTournamentId(tournament.getId());
+
+        if (!finalMatch.getStatus().equals(EventStatus.COMPLETED)) {
+            throw new ServiceException(String.format("Final match of tournament (id '%s') has't finished", id));
+        }
+
+        Tournament finishedTournament = tournament.toBuilder()
+                .status(EventStatus.COMPLETED)
+                .build();
+
+        tournamentRepository.save(finishedTournament);
+
+        return finalMatch.getWinnerId();
+    }
+
 
     @Override
     @Transactional
@@ -209,7 +153,6 @@ public class TournamentServiceImpl implements TournamentService {
         participantService.deleteAllByTournamentId(id);
         matchService.deleteAllByTournamentId(id);
         tournamentRepository.deleteById(id);
-
     }
 
 }

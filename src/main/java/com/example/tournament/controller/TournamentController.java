@@ -1,8 +1,6 @@
 package com.example.tournament.controller;
 
 
-import com.example.tournament.dto.form.ParticipantsAddForm;
-import com.example.tournament.dto.form.ParticipantsRemoveForm;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.TournamentDto;
@@ -40,8 +38,8 @@ public class TournamentController {
     }
 
     @PostMapping("/new")
-    public void create(@RequestBody TournamentCreateForm tournamentCreateForm) {
-        tournamentService.create(tournamentCreateForm);
+    public TournamentDto create(@RequestBody TournamentCreateForm tournamentCreateForm) {
+        return tournamentService.create(tournamentCreateForm);
     }
 
     @PostMapping("/delete/{id}")
@@ -49,17 +47,7 @@ public class TournamentController {
         tournamentService.delete(id);
     }
 
-    @PostMapping("/{id}/add")
-    public void addParticipants(@PathVariable Long id, @RequestBody ParticipantsAddForm participantsAddForm) {
-        tournamentService.addParticipants(id, participantsAddForm);
-    }
-
-    @PostMapping("/{id}/remove")
-    public void removeParticipants(@PathVariable Long id, @RequestBody ParticipantsRemoveForm participantsRemoveForm) {
-        tournamentService.removeParticipant(id, participantsRemoveForm);
-    }
-
-    @PostMapping("{id}/start")
+    @PostMapping("/{id}/start")
     public List<MatchDto> start(@PathVariable Long id) {
         return tournamentService.start(id);
     }

@@ -1,5 +1,6 @@
 package com.example.tournament.service;
 
+import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.dto.response.ParticipantDto;
 
 import java.util.List;
@@ -10,11 +11,11 @@ public interface ParticipantService {
 
     int countByTournamentId(Long tournamentId);
 
-    ParticipantDto findById(Long id);
+    ParticipantDto findById(Long tournamentId, Long participantId);
 
-    void create(String name, long tournamentId);
+    List<ParticipantDto> createAll(Long tournamentId, ParticipantsAddForm participantsAddForm);
 
-    void delete(Long id);
+    void delete(Long tournamentId, Long participantId);
 
     void deleteAllByTournamentId(Long tournamentId);
 

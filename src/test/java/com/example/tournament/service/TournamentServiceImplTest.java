@@ -81,7 +81,7 @@ public class TournamentServiceImplTest {
 //                .tournamentId(tournament.getId())
 //                .build());
 
-        tournamentService.generateMatches(participantDtos, tournament);
+//        tournamentService.generateMatches(participantDtos, tournament);
 
 
     }

@@ -1,17 +1,21 @@
 package com.example.tournament.controller;
 
 
+import com.example.tournament.dto.form.MatchUpdateForm;
+import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.service.MatchService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
-@RequestMapping(value = "/matches", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/tournaments/{tournamentId}/matches", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MatchController {
 
     private final MatchService matchService;
@@ -21,16 +25,22 @@ public class MatchController {
     }
 
     @GetMapping
-    public void findAllByTournamentId(@RequestParam(name = "tournamentId") Long tournamentId) {
+    public List<MatchDto> findAllByTournamentId(@PathVariable Long tournamentId) {
 
-        matchService.findAllByTournament(tournamentId);
+        return matchService.findAllByTournament(tournamentId);
     }
 
-    @PostMapping("/{id}/start")
-    public void start(@PathVariable Long id) {
+    @PostMapping("/start/{matchId}")
+    public MatchDto start(@PathVariable Long tournamentId, @PathVariable Long matchId) {
 
-        matchService.start(id);
+        return matchService.start(tournamentId, matchId);
     }
 
+    @PostMapping("/update/{matchId}")
+    public MatchDto update(@PathVariable Long tournamentId, @PathVariable Long matchId,
+                           @RequestBody MatchUpdateForm matchUpdateForm) {
+
+        return matchService.update(tournamentId, matchId, matchUpdateForm);
+    }
 
 }
