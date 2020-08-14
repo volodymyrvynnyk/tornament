@@ -1,21 +1,29 @@
 package com.example.tournament.service;
 
+import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.exception.ServiceException;
-import com.example.tournament.model.EventStatus;
+import com.example.tournament.model.Match;
 import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.ParticipantRepository;
 import com.example.tournament.util.mapper.ParticipantMapper;
 import com.example.tournament.util.validation.DataValidator;
-import org.junit.jupiter.api.BeforeAll;
+import com.example.tournament.util.validation.ValidationResult;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,32 +44,16 @@ public class ParticipantServiceImplTest {
     @Mock
     private ParticipantMapper participantMapperMock;
 
-    private ParticipantMapper participantMapper;
-
+    @Mock
     private DataValidator dataValidator;
 
     @InjectMocks
     private ParticipantServiceImpl participantService;
 
-    @BeforeAll
+    @BeforeEach
     void setUp() {
 
         MockitoAnnotations.initMocks(this);
-
-        participantMapper = new ParticipantMapper();
-
-        dataValidator = new DataValidator();
-
-        when(dataHelperService.findTournamentByIdOrThrowException(anyLong()))
-                .thenReturn(Tournament.builder()
-                        .id(1L)
-                        .maxNumberOfParticipants(16)
-                        .status(EventStatus.PENDING)
-                        .title("Tournament")
-                        .build());
-//
-//        when(participantRepository.findAllByTournamentId(anyLong()))
-//                .thenReturn(new ArrayList<Participant>());
     }
 
     @Test
@@ -83,7 +75,7 @@ public class ParticipantServiceImplTest {
     }
 
     @Test
-    public void findByIdSuccessFlow() {
+    public void findById_SuccessFlow() {
 
         Long tournamentId = 1l;
         Long participantId = 1l;
@@ -100,7 +92,7 @@ public class ParticipantServiceImplTest {
     }
 
     @Test
-    public void findByIdExceptionFlow() {
+    public void findById_ExceptionFlow() {
 
         Long tournamentId = 1l;
         Long wrongTournamentId = 2l;
@@ -121,5 +113,126 @@ public class ParticipantServiceImplTest {
         String actualMessage = exception.getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void deleteTest1() {
+
+        Long tournamentId = 1l;
+        Long participantId = 1l;
+
+        Optional<Match> optionalMatch = Optional.of(Match.builder()
+                .build());
+        when(matchService.findMatchByParticipant(tournamentId, participantId))
+                .thenReturn(optionalMatch);
+
+        participantService.delete(tournamentId, participantId);
+        verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
+        verify(matchService, times(1)).findMatchByParticipant(tournamentId, participantId);
+        verify(matchService, times(1)).disqualifyParticipant(optionalMatch.get(), participantId);
+        verify(participantRepository, times(1)).deleteByTournamentIdAndId(tournamentId, participantId);
+
+    }
+
+    @Test
+    public void deleteTest2() {
+
+        Long tournamentId = 1l;
+        Long participantId = 1l;
+
+        when(matchService.findMatchByParticipant(tournamentId, participantId))
+                .thenReturn(Optional.empty());
+
+        participantService.delete(tournamentId, participantId);
+        verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
+        verify(matchService, times(1)).findMatchByParticipant(tournamentId, participantId);
+        verify(matchService, Mockito.never()).disqualifyParticipant(any(Match.class), anyLong());
+        verify(participantRepository, times(1)).deleteByTournamentIdAndId(tournamentId, participantId);
+
+    }
+
+    @Test
+    public void deleteAllByTournamentIdTest() {
+        Long tournamentId = 1l;
+        participantRepository.deleteAllByTournamentId(tournamentId);
+        verify(participantRepository, times(1)).deleteAllByTournamentId(tournamentId);
+    }
+
+    @Test
+    public void createAll_ValidationErrorFlow() {
+
+        Long tournamentId = 1l;
+        ParticipantsAddForm participantsAddForm = ParticipantsAddForm.builder()
+                .build();
+
+        when(dataValidator.validate(participantsAddForm))
+                .thenReturn(ValidationResult.withError("Some errors"));
+
+        Exception exception = assertThrows(ServiceException.class, () -> {
+            participantService.createAll(tournamentId, participantsAddForm);
+        });
+        verify(dataValidator, times(1)).validate(participantsAddForm);
+    }
+
+    @Test
+    public void createAll_LimitErrorFlow() {
+
+        Long tournamentId = 1l;
+        ParticipantsAddForm participantsAddForm = ParticipantsAddForm.builder()
+                .names(Arrays.asList("Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7"))
+                .build();
+
+        when(dataValidator.validate(participantsAddForm))
+                .thenReturn(ValidationResult.valid());
+
+        when(dataHelperService.findTournamentByIdOrThrowException(1l)).thenReturn(
+                Tournament.builder()
+                        .id(tournamentId)
+                        .maxNumberOfParticipants(8)
+                        .build()
+        );
+
+        when(participantRepository.countByTournamentId(tournamentId))
+                .thenReturn(2);
+
+        Exception exception = assertThrows(ServiceException.class, () -> {
+            participantService.createAll(tournamentId, participantsAddForm);
+        });
+        verify(dataValidator, times(1)).validate(participantsAddForm);
+        verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
+        verify(participantRepository, times(1)).countByTournamentId(tournamentId);
+        String expectedMessage = String.format(
+                "Tournament (id '%s') can't get these participators. Limit will be exceeded", tournamentId);
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void createAll_SuccessFlow() {
+
+        Long tournamentId = 1l;
+        ParticipantsAddForm participantsAddForm = ParticipantsAddForm.builder()
+                .names(Arrays.asList("Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7"))
+                .build();
+
+        when(dataValidator.validate(participantsAddForm))
+                .thenReturn(ValidationResult.valid());
+        when(dataHelperService.findTournamentByIdOrThrowException(1l)).thenReturn(
+                Tournament.builder()
+                        .id(tournamentId)
+                        .maxNumberOfParticipants(8)
+                        .build()
+        );
+
+        when(participantRepository.countByTournamentId(tournamentId))
+                .thenReturn(0);
+
+        when(participantRepository.existsByNameAndTournamentId(any(), anyLong()))
+                .thenReturn(false);
+
+        participantService.createAll(tournamentId, participantsAddForm);
+        verify(dataValidator, times(1)).validate(participantsAddForm);
+        verify(participantRepository, times(1)).saveAll(any(List.class));
     }
 }

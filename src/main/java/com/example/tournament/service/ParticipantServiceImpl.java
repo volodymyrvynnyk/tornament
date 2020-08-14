@@ -14,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +57,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public int countByTournamentId(Long tournamentId) {
+
         return participantRepository.countByTournamentId(tournamentId);
     }
 
@@ -77,6 +80,10 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         ValidationResult validationResult = dataValidator.validate(participantsAddForm);
 
+        if (new HashSet<>(participantsAddForm.getNames()).size() < participantsAddForm.getNames().size()) {
+            throw new ServiceException("Participants list has duplicates");
+        }
+
         if (validationResult.isError()) {
             throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
         }
@@ -87,7 +94,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (numberOfParticipants + participantsAddForm.getNames().size() > tournament.getMaxNumberOfParticipants()) {
             throw new ServiceException(String.format(
-                    "Tournament '%s' can't get these participators. Limit will be exceeded", tournament.getTitle()));
+                    "Tournament (id '%s') can't get these participators. Limit will be exceeded", tournament.getId()));
         }
 
         List<Participant> participants = participantsAddForm.getNames().stream()
@@ -95,10 +102,10 @@ public class ParticipantServiceImpl implements ParticipantService {
                     if (participantRepository.existsByNameAndTournamentId(name, tournamentId)) {
                         throw new ServiceException(String.format("Participant with name '%s' already exists in this tournament", name));
                     }
-                    return participantRepository.save(Participant.builder()
+                    return Participant.builder()
                             .name(name)
                             .tournamentId(tournamentId)
-                            .build());
+                            .build();
                 }).collect(Collectors.toList());
 
         List<Participant> participantsFromDb = participantRepository.saveAll(participants);
@@ -110,6 +117,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public void delete(Long tournamentId, Long participantId) {
 
+        dataHelperService.findTournamentByIdOrThrowException(tournamentId);
         Optional<Match> optionalMatch = matchService.findMatchByParticipant(tournamentId, participantId);
 
         optionalMatch.ifPresent(match -> matchService.disqualifyParticipant(match, participantId));
