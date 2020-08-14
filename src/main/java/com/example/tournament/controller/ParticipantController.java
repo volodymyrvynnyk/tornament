@@ -27,7 +27,7 @@ public class ParticipantController {
 
     @GetMapping
     public List<ParticipantDto> findAllByTournament(@PathVariable Long tournamentId) {
-        return participantService.findAllByTournamentId(tournamentId);
+        return participantService.findAllByTournamentIdDto(tournamentId);
     }
 
     @GetMapping("/{participantId}")

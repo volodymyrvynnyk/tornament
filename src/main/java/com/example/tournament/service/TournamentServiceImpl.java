@@ -2,11 +2,11 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
-import com.example.tournament.dto.response.ParticipantDto;
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
+import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.TournamentRepository;
 import com.example.tournament.util.mapper.TournamentMapper;
@@ -89,11 +89,11 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournamentRepository.save(updatedTournament);
 
-        List<ParticipantDto> participants = participantService.findAllByTournamentId(updatedTournament.getId());
+        List<Participant> participants = participantService.findAllByTournamentId(updatedTournament.getId());
         List<Match> matches = matchService.generateMatches(participants, tournament);
         matchService.saveAll(matches);
 
-        return matchService.findAllByTournament(tournament.getId());
+        return matchService.findAllByTournamentId(tournament.getId());
     }
 
 

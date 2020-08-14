@@ -42,7 +42,7 @@ public class ParticipantServiceImplTest {
     private DataHelperService dataHelperService;
 
     @Mock
-    private ParticipantMapper participantMapperMock;
+    private ParticipantMapper participantMapper;
 
     @Mock
     private DataValidator dataValidator;
@@ -57,10 +57,10 @@ public class ParticipantServiceImplTest {
     }
 
     @Test
-    public void findAllByTournamentIdTest() {
+    public void findAllByTournamentIdDtoTest() {
 
         Long tournamentId = 1l;
-        participantService.findAllByTournamentId(tournamentId);
+        participantService.findAllByTournamentIdDto(tournamentId);
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
         verify(participantRepository, times(1)).findAllByTournamentId(tournamentId);
 
@@ -123,13 +123,13 @@ public class ParticipantServiceImplTest {
 
         Optional<Match> optionalMatch = Optional.of(Match.builder()
                 .build());
-        when(matchService.findMatchByParticipant(tournamentId, participantId))
+        when(matchService.findUncompletedMatchByParticipantId(tournamentId, participantId))
                 .thenReturn(optionalMatch);
 
         participantService.delete(tournamentId, participantId);
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
-        verify(matchService, times(1)).findMatchByParticipant(tournamentId, participantId);
-        verify(matchService, times(1)).disqualifyParticipant(optionalMatch.get(), participantId);
+        verify(matchService, times(1)).findUncompletedMatchByParticipantId(tournamentId, participantId);
+        verify(matchService, times(1)).disqualifyParticipantById(optionalMatch.get(), participantId);
         verify(participantRepository, times(1)).deleteByTournamentIdAndId(tournamentId, participantId);
 
     }
@@ -140,13 +140,13 @@ public class ParticipantServiceImplTest {
         Long tournamentId = 1l;
         Long participantId = 1l;
 
-        when(matchService.findMatchByParticipant(tournamentId, participantId))
+        when(matchService.findUncompletedMatchByParticipantId(tournamentId, participantId))
                 .thenReturn(Optional.empty());
 
         participantService.delete(tournamentId, participantId);
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
-        verify(matchService, times(1)).findMatchByParticipant(tournamentId, participantId);
-        verify(matchService, Mockito.never()).disqualifyParticipant(any(Match.class), anyLong());
+        verify(matchService, times(1)).findUncompletedMatchByParticipantId(tournamentId, participantId);
+        verify(matchService, Mockito.never()).disqualifyParticipantById(any(Match.class), anyLong());
         verify(participantRepository, times(1)).deleteByTournamentIdAndId(tournamentId, participantId);
 
     }

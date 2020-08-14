@@ -2,12 +2,15 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.dto.response.ParticipantDto;
+import com.example.tournament.model.Participant;
 
 import java.util.List;
 
 public interface ParticipantService {
 
-    List<ParticipantDto> findAllByTournamentId(Long tournamentId);
+    List<ParticipantDto> findAllByTournamentIdDto(Long tournamentId);
+
+    List<Participant> findAllByTournamentId(Long tournamentId);
 
     int countByTournamentId(Long tournamentId);
 

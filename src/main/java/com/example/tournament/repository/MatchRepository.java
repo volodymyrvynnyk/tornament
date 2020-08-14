@@ -13,7 +13,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     void deleteAllByTournamentId(Long tournamentId);
 
-    Optional<Match> findByFirstParticipantIdOrSecondParticipantIdAndStatus(Long firstParticipantId,
+    Optional<Match> findByFirstParticipantIdOrSecondParticipantIdAndStatusNot(Long firstParticipantId,
                                                                            Long secondParticipantId, EventStatus status);
 
     Optional<Match> findByNextMatchLabelIsNullAndTournamentId(Long tournamentId);

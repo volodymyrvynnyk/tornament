@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,13 +45,19 @@ public class ParticipantServiceImpl implements ParticipantService {
 
 
     @Override
-    public List<ParticipantDto> findAllByTournamentId(Long tournamentId) {
+    public List<ParticipantDto> findAllByTournamentIdDto(Long tournamentId) {
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
         List<Participant> participants = participantRepository.findAllByTournamentId(tournament.getId());
 
         return participantMapper.participantListToDto(participants);
+    }
+
+    @Override
+    public List<Participant> findAllByTournamentId(Long tournamentId) {
+
+        return participantRepository.findAllByTournamentId(tournamentId);
     }
 
     @Override
@@ -118,9 +123,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     public void delete(Long tournamentId, Long participantId) {
 
         dataHelperService.findTournamentByIdOrThrowException(tournamentId);
-        Optional<Match> optionalMatch = matchService.findMatchByParticipant(tournamentId, participantId);
+        Optional<Match> optionalMatch = matchService.findUncompletedMatchByParticipantId(tournamentId, participantId);
 
-        optionalMatch.ifPresent(match -> matchService.disqualifyParticipant(match, participantId));
+        optionalMatch.ifPresent(match -> matchService.disqualifyParticipantById(match, participantId));
         participantRepository.deleteByTournamentIdAndId(tournamentId, participantId);
     }
 

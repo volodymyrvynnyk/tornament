@@ -2,10 +2,10 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.MatchUpdateForm;
 import com.example.tournament.dto.response.MatchDto;
-import com.example.tournament.dto.response.ParticipantDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
+import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.MatchRepository;
 import com.example.tournament.util.mapper.MatchMapper;
@@ -48,7 +48,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public List<MatchDto> findAllByTournament(Long tournamentId) {
+    public List<MatchDto> findAllByTournamentId(Long tournamentId) {
 
         List<Match> matches = matchRepository.findAllByTournamentId(tournamentId);
 
@@ -82,9 +82,9 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public MatchDto start(Long tournamentId, Long id) {
+    public MatchDto startMatch(Long tournamentId, Long matchId) {
 
-        Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(id);
+        Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(matchId);
 
         checkIfMatchBelongsToTournament(tournamentId, matchFromDb);
 
@@ -107,7 +107,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
-    public MatchDto update(Long tournamentId, Long matchId, MatchUpdateForm matchUpdateForm) {
+    public MatchDto updateMatch(Long tournamentId, Long matchId, MatchUpdateForm matchUpdateForm) {
 
         ValidationResult validationResult = dataValidator.validate(matchUpdateForm);
 
@@ -117,11 +117,15 @@ public class MatchServiceImpl implements MatchService {
 
         Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(matchId);
 
-        checkIfMatchBelongsToTournament(tournamentId, matchFromDb);
-
-        if (!matchFromDb.getStatus().equals(EventStatus.STARTED)) {
+        if (matchFromDb.getStatus().equals(EventStatus.PENDING)) {
             throw new ServiceException(String.format("Match (id '%s') hasn't been started", matchId));
         }
+
+        if (matchFromDb.getStatus().equals(EventStatus.COMPLETED)) {
+            throw new ServiceException(String.format("Match (id '%s') has been already finished", matchId));
+        }
+
+        checkIfMatchBelongsToTournament(tournamentId, matchFromDb);
 
         Match updatedMatch = matchFromDb.toBuilder()
                 .firstParticipantScore(matchUpdateForm.getFirstParticipantScore())
@@ -129,7 +133,8 @@ public class MatchServiceImpl implements MatchService {
                 .build();
 
         if (!isNull(matchUpdateForm.getWinnerId())) {
-            finish(updatedMatch, matchUpdateForm.getWinnerId());
+
+            updatedMatch = finishMatch(updatedMatch, matchUpdateForm.getWinnerId());
         }
 
         matchRepository.save(updatedMatch);
@@ -144,7 +149,7 @@ public class MatchServiceImpl implements MatchService {
         }
     }
 
-    private void finish(Match match, Long winnerId) {
+    private Match finishMatch(Match match, Long winnerId) {
 
         if (!winnerId.equals(match.getFirstParticipantId()) && !winnerId.equals(match.getSecondParticipantId())) {
             throw new ServiceException("Wrong winner id");
@@ -163,7 +168,8 @@ public class MatchServiceImpl implements MatchService {
             nextMatch.addParticipant(finishedMatch.getWinnerId());
             matchRepository.save(nextMatch);
         }
-        matchRepository.save(finishedMatch);
+
+        return finishedMatch;
 
     }
 
@@ -174,20 +180,21 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public Optional<Match> findMatchByParticipant(Long tournamentId, Long participantId) {
+    public Optional<Match> findUncompletedMatchByParticipantId(Long tournamentId, Long participantId) {
 
-        return matchRepository.findByFirstParticipantIdOrSecondParticipantIdAndStatus(participantId,
+        return matchRepository.findByFirstParticipantIdOrSecondParticipantIdAndStatusNot(participantId,
                 participantId, EventStatus.COMPLETED);
     }
 
     @Override
-    public void disqualifyParticipant(Match match, Long participantId) {
+    public void disqualifyParticipantById(Match match, Long participantId) {
 
         Long winnerId = match.getFirstParticipantId().equals(participantId) ?
                 match.getSecondParticipantId() :
                 match.getFirstParticipantId();
 
-        finish(match, winnerId);
+        Match finishedMatch = finishMatch(match, winnerId);
+        matchRepository.save(finishedMatch);
     }
 
     @Override
@@ -198,7 +205,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public List<Match> generateMatches(List<ParticipantDto> participants, Tournament tournament) {
+    public List<Match> generateMatches(List<Participant> participants, Tournament tournament) {
 
         Collections.shuffle(participants);
 
@@ -242,26 +249,25 @@ public class MatchServiceImpl implements MatchService {
 
             final char ctemp = label;
 
-            long numberOfMatchesFollowed = matches.stream().filter(m -> m.getNextMatchLabel() == ctemp).count();
-            Match matchToFollow = matches.stream().filter(m -> m.getLabel() == ctemp).findFirst().get();
+            long numberOfPotentialParticipants = matches.stream().filter(m -> nonNull(m.getNextMatchLabel()) && m.getNextMatchLabel() == ctemp).count();
 
-            if (Objects.nonNull(matchToFollow.getFirstParticipantId())) {
-                numberOfMatchesFollowed++;
-            }
-            if (Objects.nonNull(matchToFollow.getSecondParticipantId())) {
-                numberOfMatchesFollowed++;
-            }
-            if (numberOfMatchesFollowed == 2) {
-                label++;
+            Optional<Match> optionalMatchToFollow = matches.stream().filter(m -> m.getLabel() == ctemp).findFirst();
+
+            if (optionalMatchToFollow.isPresent()) {
+                Match matchToFollow = optionalMatchToFollow.get();
+                numberOfPotentialParticipants += Objects.nonNull(matchToFollow.getFirstParticipantId()) ? 1 : 0;
+                numberOfPotentialParticipants += Objects.nonNull(matchToFollow.getSecondParticipantId()) ? 1 : 0;
+                label += numberOfPotentialParticipants == 2 ? 1 : 0;
+
+                if (matches.size() - 1 != matches.indexOf(match)) {
+                    match.setNextMatchLabel(label);
+                }
             }
 
-            if (matches.size() - 1 != matches.indexOf(match)) {
-                match.setNextMatchLabel(label);
-            }
 
         }
 
+        matchRepository.saveAll(matches);
         return matches;
-
     }
 }

@@ -27,20 +27,20 @@ public class MatchController {
     @GetMapping
     public List<MatchDto> findAllByTournamentId(@PathVariable Long tournamentId) {
 
-        return matchService.findAllByTournament(tournamentId);
+        return matchService.findAllByTournamentId(tournamentId);
     }
 
     @PostMapping("/start/{matchId}")
     public MatchDto start(@PathVariable Long tournamentId, @PathVariable Long matchId) {
 
-        return matchService.start(tournamentId, matchId);
+        return matchService.startMatch(tournamentId, matchId);
     }
 
     @PostMapping("/update/{matchId}")
     public MatchDto update(@PathVariable Long tournamentId, @PathVariable Long matchId,
                            @RequestBody MatchUpdateForm matchUpdateForm) {
 
-        return matchService.update(tournamentId, matchId, matchUpdateForm);
+        return matchService.updateMatch(tournamentId, matchId, matchUpdateForm);
     }
 
 }
