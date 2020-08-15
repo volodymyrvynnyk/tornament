@@ -7,8 +7,6 @@ import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.ParticipantRepository;
 import com.example.tournament.util.mapper.ParticipantMapper;
-import com.example.tournament.util.validation.DataValidator;
-import com.example.tournament.util.validation.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -41,9 +39,6 @@ public class ParticipantServiceImplTest {
 
     @Mock
     private ParticipantMapper participantMapper;
-
-    @Mock
-    private DataValidator dataValidator;
 
     @InjectMocks
     private ParticipantServiceImpl participantService;
@@ -172,8 +167,6 @@ public class ParticipantServiceImplTest {
             participantService.createAll(tournamentId, participantsAddForm);
         });
 
-        verify(dataValidator, times(1)).validate(participantsAddForm);
-
         String expectedMessage = "Participants list has duplicates";
         String actualMessage = exception.getMessage();
 
@@ -188,9 +181,6 @@ public class ParticipantServiceImplTest {
                 .names(Arrays.asList("Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7"))
                 .build();
 
-        when(dataValidator.validate(participantsAddForm))
-                .thenReturn(ValidationResult.valid());
-
         when(dataHelperService.findTournamentByIdOrThrowException(1l)).thenReturn(
                 Tournament.builder()
                         .id(tournamentId)
@@ -204,7 +194,6 @@ public class ParticipantServiceImplTest {
         Exception exception = assertThrows(ServiceException.class, () -> {
             participantService.createAll(tournamentId, participantsAddForm);
         });
-        verify(dataValidator, times(1)).validate(participantsAddForm);
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
         verify(participantRepository, times(1)).countByTournamentId(tournamentId);
         String expectedMessage = String.format(
@@ -222,8 +211,6 @@ public class ParticipantServiceImplTest {
                 .names(Arrays.asList("Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7"))
                 .build();
 
-        when(dataValidator.validate(participantsAddForm))
-                .thenReturn(ValidationResult.valid());
         when(dataHelperService.findTournamentByIdOrThrowException(1l)).thenReturn(
                 Tournament.builder()
                         .id(tournamentId)
@@ -238,7 +225,6 @@ public class ParticipantServiceImplTest {
                 .thenReturn(false);
 
         participantService.createAll(tournamentId, participantsAddForm);
-        verify(dataValidator, times(1)).validate(participantsAddForm);
         verify(participantRepository, times(1)).saveAll(any(List.class));
     }
 }

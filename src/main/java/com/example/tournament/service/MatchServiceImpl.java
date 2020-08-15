@@ -10,8 +10,6 @@ import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.MatchRepository;
 import com.example.tournament.util.mapper.MatchMapper;
-import com.example.tournament.util.validation.DataValidator;
-import com.example.tournament.util.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,14 +34,11 @@ public class MatchServiceImpl implements MatchService {
 
     private final MatchMapper matchMapper;
 
-    private final DataValidator dataValidator;
-
     @Autowired
-    public MatchServiceImpl(MatchRepository matchRepository, DataHelperService dataHelperService, MatchMapper matchMapper, DataValidator dataValidator) {
+    public MatchServiceImpl(MatchRepository matchRepository, DataHelperService dataHelperService, MatchMapper matchMapper) {
         this.matchRepository = matchRepository;
         this.dataHelperService = dataHelperService;
         this.matchMapper = matchMapper;
-        this.dataValidator = dataValidator;
     }
 
     @Override
@@ -113,12 +108,6 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchDto updateMatch(Long tournamentId, Long matchId, MatchUpdateForm matchUpdateForm) {
-
-//        ValidationResult validationResult = dataValidator.validate(matchUpdateForm);
-//
-//        if (validationResult.isError()) {
-//            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
-//        }
 
         Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(matchId);
 

@@ -12,8 +12,6 @@ import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.TournamentRepository;
 import com.example.tournament.util.mapper.TournamentMapper;
-import com.example.tournament.util.validation.DataValidator;
-import com.example.tournament.util.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,18 +31,16 @@ public class TournamentServiceImpl implements TournamentService {
 
     private final TournamentMapper tournamentMapper;
 
-    private final DataValidator dataValidator;
 
     @Autowired
     public TournamentServiceImpl(TournamentRepository tournamentRepository, ParticipantService participantService,
                                  MatchService matchService, DataHelperService dataHelperService,
-                                 TournamentMapper tournamentMapper, DataValidator dataValidator) {
+                                 TournamentMapper tournamentMapper) {
         this.tournamentRepository = tournamentRepository;
         this.participantService = participantService;
         this.matchService = matchService;
         this.dataHelperService = dataHelperService;
         this.tournamentMapper = tournamentMapper;
-        this.dataValidator = dataValidator;
     }
 
 
@@ -106,12 +102,6 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentDto create(TournamentCreateForm tournamentCreateForm) {
-
-        ValidationResult validationResult = dataValidator.validate(tournamentCreateForm);
-
-        if (validationResult.isError()) {
-            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
-        }
 
         if (tournamentCreateForm.getMaxNumberOfParticipants() % 8 != 0) {
             throw new ServiceException("Tournament's max number of participants must be multiples of 8");

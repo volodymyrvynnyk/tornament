@@ -9,8 +9,6 @@ import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.ParticipantRepository;
 import com.example.tournament.util.mapper.ParticipantMapper;
-import com.example.tournament.util.validation.DataValidator;
-import com.example.tournament.util.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +29,14 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantMapper participantMapper;
 
-    private final DataValidator dataValidator;
-
 
     @Autowired
     public ParticipantServiceImpl(ParticipantRepository participantRepository, MatchService matchService, DataHelperService dataHelperService,
-                                  ParticipantMapper participantMapper, DataValidator dataValidator) {
+                                  ParticipantMapper participantMapper) {
         this.participantRepository = participantRepository;
         this.matchService = matchService;
         this.dataHelperService = dataHelperService;
         this.participantMapper = participantMapper;
-        this.dataValidator = dataValidator;
     }
 
 
@@ -86,15 +81,10 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     public ParticipantListDto createAll(Long tournamentId, ParticipantsAddForm participantsAddForm) {
 
-        ValidationResult validationResult = dataValidator.validate(participantsAddForm);
-
         if (new HashSet<>(participantsAddForm.getNames()).size() < participantsAddForm.getNames().size()) {
             throw new ServiceException("Participants list has duplicates");
         }
 
-        if (validationResult.isError()) {
-            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
-        }
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 

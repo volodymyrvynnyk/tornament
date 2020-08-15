@@ -8,8 +8,6 @@ import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.MatchRepository;
 import com.example.tournament.util.mapper.MatchMapper;
-import com.example.tournament.util.validation.DataValidator;
-import com.example.tournament.util.validation.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,9 +39,6 @@ public class MatchServiceImplTest {
 
     @Mock
     private MatchMapper matchMapper;
-
-    @Mock
-    private DataValidator dataValidator;
 
     @Captor
     private ArgumentCaptor<List<Match>> matchListArgumentCaptor;
@@ -134,8 +129,6 @@ public class MatchServiceImplTest {
                 .status(EventStatus.STARTED)
                 .build();
 
-        when(dataValidator.validate(matchUpdateForm)).thenReturn(ValidationResult.valid());
-
         when(dataHelperService.findMatchByIdOrThrowException(matchId))
                 .thenReturn(matchFromDb);
 
@@ -166,8 +159,6 @@ public class MatchServiceImplTest {
                 .nextMatchLabel(nextMatchLabel)
                 .status(EventStatus.STARTED)
                 .build();
-
-        when(dataValidator.validate(matchUpdateForm)).thenReturn(ValidationResult.valid());
 
         when(matchRepository.findAllByTournamentId(tournamentId))
                 .thenReturn(Arrays.asList(Match.builder()

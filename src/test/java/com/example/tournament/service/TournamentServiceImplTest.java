@@ -8,8 +8,6 @@ import com.example.tournament.model.Match;
 import com.example.tournament.model.Tournament;
 import com.example.tournament.repository.TournamentRepository;
 import com.example.tournament.util.mapper.TournamentMapper;
-import com.example.tournament.util.validation.DataValidator;
-import com.example.tournament.util.validation.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -38,9 +36,6 @@ public class TournamentServiceImplTest {
 
     @Mock
     private TournamentMapper tournamentMapper;
-
-    @Mock
-    private DataValidator dataValidator;
 
     @InjectMocks
     private TournamentServiceImpl tournamentService;
@@ -103,9 +98,6 @@ public class TournamentServiceImplTest {
                 .title("Title")
                 .maxNumberOfParticipants(16)
                 .build();
-
-        when(dataValidator.validate(tournamentCreateForm))
-                .thenReturn(ValidationResult.valid());
 
         tournamentService.create(tournamentCreateForm);
         verify(tournamentRepository, times(1)).save(any(Tournament.class));
