@@ -3,6 +3,7 @@ package com.example.tournament.controller;
 
 import com.example.tournament.dto.form.MatchUpdateForm;
 import com.example.tournament.dto.response.MatchDto;
+import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.service.MatchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/tournaments/{tournamentId}/matches", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -28,9 +27,9 @@ public class MatchController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<MatchDto> findAllByTournamentId(@PathVariable Long tournamentId) {
+    public MatchListDto findAllByTournamentId(@PathVariable Long tournamentId) {
 
-        return matchService.findAllByTournamentId(tournamentId);
+        return matchService.findMatchListByTournamentId(tournamentId);
     }
 
     @GetMapping("/{matchId}")

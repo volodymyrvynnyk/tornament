@@ -1,7 +1,7 @@
 package com.example.tournament.service;
 
 import com.example.tournament.dto.form.TournamentCreateForm;
-import com.example.tournament.dto.response.MatchDto;
+import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.dto.response.TournamentResultDto;
 import com.example.tournament.exception.ServiceException;
@@ -73,7 +73,7 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
-    public List<MatchDto> startTournament(Long id) {
+    public MatchListDto startTournament(Long id) {
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(id);
 
@@ -97,7 +97,7 @@ public class TournamentServiceImpl implements TournamentService {
         List<Participant> participants = participantService.findAllByTournamentId(updatedTournament.getId());
         matchService.generateMatches(participants, tournament);
 
-        return matchService.findAllByTournamentId(tournament.getId());
+        return matchService.findMatchListByTournamentId(tournament.getId());
     }
 
 
@@ -150,7 +150,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .tournament(tournamentMapper.tournamentToDto(tournament).toBuilder()
                         .numberOfParticipants(participantService.countByTournamentId(tournament.getId()))
                         .build())
-                .matches(matchService.findAllByTournamentId(tournament.getId()))
+                .matches(matchService.findMatchListByTournamentId(tournament.getId()).getMatches())
                 .winner(participantService.findById(tournament.getId(), finalMatch.getWinnerId()))
                 .build();
     }

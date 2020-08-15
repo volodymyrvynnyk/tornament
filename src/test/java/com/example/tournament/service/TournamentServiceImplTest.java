@@ -1,6 +1,7 @@
 package com.example.tournament.service;
 
 import com.example.tournament.dto.form.TournamentCreateForm;
+import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
@@ -92,7 +93,7 @@ public class TournamentServiceImplTest {
         verify(tournamentRepository, times(1)).save(any(Tournament.class));
         verify(participantService, times(1)).findAllByTournamentId(tournamentId);
         verify(matchService, times(1)).generateMatches(anyList(), any(Tournament.class));
-        verify(matchService, times(1)).findAllByTournamentId(tournamentId);
+        verify(matchService, times(1)).findMatchListByTournamentId(tournamentId);
     }
 
     @Test
@@ -129,6 +130,9 @@ public class TournamentServiceImplTest {
                         .winnerId(1l)
                         .build()
                 );
+
+        when(matchService.findMatchListByTournamentId(tournament.getId()))
+                .thenReturn(MatchListDto.builder().build());
 
         when(tournamentMapper.tournamentToDto(any(Tournament.class)))
                 .thenReturn(TournamentDto.builder().build());

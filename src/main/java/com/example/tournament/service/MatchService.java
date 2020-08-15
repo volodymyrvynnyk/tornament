@@ -2,6 +2,7 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.MatchUpdateForm;
 import com.example.tournament.dto.response.MatchDto;
+import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.model.Match;
 import com.example.tournament.model.Participant;
 import com.example.tournament.model.Tournament;
@@ -12,11 +13,9 @@ import java.util.Optional;
 
 public interface MatchService {
 
-    List<MatchDto> findAllByTournamentId(Long tournamentId);
+    MatchListDto findMatchListByTournamentId(Long tournamentId);
 
     MatchDto findById(Long tournamentId, Long matchId);
-
-    void saveAll(List<Match> matches);
 
     MatchDto startMatch(Long tournamentId, Long matchId);
 

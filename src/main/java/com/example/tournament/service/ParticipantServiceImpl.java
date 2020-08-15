@@ -2,6 +2,7 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.dto.response.ParticipantDto;
+import com.example.tournament.dto.response.ParticipantListDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.model.Match;
 import com.example.tournament.model.Participant;
@@ -45,13 +46,15 @@ public class ParticipantServiceImpl implements ParticipantService {
 
 
     @Override
-    public List<ParticipantDto> findAllByTournamentIdDto(Long tournamentId) {
+    public ParticipantListDto findParticipantListByTournamentId(Long tournamentId) {
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
         List<Participant> participants = participantRepository.findAllByTournamentId(tournament.getId());
 
-        return participantMapper.participantListToDto(participants);
+        return ParticipantListDto.builder()
+                .participants(participantMapper.participantListToDto(participants))
+                .build();
     }
 
     @Override
@@ -81,7 +84,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<ParticipantDto> createAll(Long tournamentId, ParticipantsAddForm participantsAddForm) {
+    public ParticipantListDto createAll(Long tournamentId, ParticipantsAddForm participantsAddForm) {
 
         ValidationResult validationResult = dataValidator.validate(participantsAddForm);
 
@@ -115,7 +118,9 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         List<Participant> participantsFromDb = participantRepository.saveAll(participants);
 
-        return participantMapper.participantListToDto(participantsFromDb);
+        return ParticipantListDto.builder()
+                .participants(participantMapper.participantListToDto(participantsFromDb))
+                .build();
     }
 
     @Override

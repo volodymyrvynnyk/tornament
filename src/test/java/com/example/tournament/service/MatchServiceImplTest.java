@@ -61,19 +61,11 @@ public class MatchServiceImplTest {
     public void findAllByTournamentTest() {
 
         Long tournamentId = 1l;
-        matchService.findAllByTournamentId(tournamentId);
+        matchService.findMatchListByTournamentId(tournamentId);
 
         verify(matchRepository, times(1)).findAllByTournamentId(tournamentId);
     }
 
-    @Test
-    public void saveAllTest() {
-
-        List<Match> matchList = new ArrayList<>();
-        matchService.saveAll(matchList);
-
-        verify(matchRepository, times(1)).saveAll(matchList);
-    }
 
     @Test
     public void startTest_ExceptionFlow() {

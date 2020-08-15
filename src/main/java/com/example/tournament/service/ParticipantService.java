@@ -2,13 +2,14 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.dto.response.ParticipantDto;
+import com.example.tournament.dto.response.ParticipantListDto;
 import com.example.tournament.model.Participant;
 
 import java.util.List;
 
 public interface ParticipantService {
 
-    List<ParticipantDto> findAllByTournamentIdDto(Long tournamentId);
+    ParticipantListDto findParticipantListByTournamentId(Long tournamentId);
 
     List<Participant> findAllByTournamentId(Long tournamentId);
 
@@ -16,7 +17,7 @@ public interface ParticipantService {
 
     ParticipantDto findById(Long tournamentId, Long participantId);
 
-    List<ParticipantDto> createAll(Long tournamentId, ParticipantsAddForm participantsAddForm);
+    ParticipantListDto createAll(Long tournamentId, ParticipantsAddForm participantsAddForm);
 
     void delete(Long tournamentId, Long participantId);
 

@@ -2,7 +2,7 @@ package com.example.tournament.controller;
 
 
 import com.example.tournament.dto.form.TournamentCreateForm;
-import com.example.tournament.dto.response.MatchDto;
+import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.dto.response.TournamentDto;
 import com.example.tournament.dto.response.TournamentResultDto;
 import com.example.tournament.service.TournamentService;
@@ -56,7 +56,7 @@ public class TournamentController {
 
     @PostMapping("/{id}/start")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<MatchDto> start(@PathVariable Long id) {
+    public MatchListDto start(@PathVariable Long id) {
         return tournamentService.startTournament(id);
     }
 

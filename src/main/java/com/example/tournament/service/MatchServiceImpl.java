@@ -2,6 +2,7 @@ package com.example.tournament.service;
 
 import com.example.tournament.dto.form.MatchUpdateForm;
 import com.example.tournament.dto.response.MatchDto;
+import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
@@ -46,25 +47,30 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public List<MatchDto> findAllByTournamentId(Long tournamentId) {
+    public MatchListDto findMatchListByTournamentId(Long tournamentId) {
+
+        dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
         List<Match> matches = matchRepository.findAllByTournamentId(tournamentId);
 
-        List<MatchDto> matchDtoList = matchMapper.matchListToDto(matches);
+        List<MatchDto> matchDtos = matchMapper.matchListToDto(matches);
 
-        matchDtoList.forEach(m -> {
+        matchDtos.forEach(m -> {
 
-            List<Character> previousMatchLabels = matches.stream()
+            List<Character> previousMatchLabels = matchDtos.stream()
                     .filter(match -> !isNull(match.getNextMatchLabel()))
                     .filter(match -> match.getNextMatchLabel().equals(m.getLabel()))
-                    .map(Match::getLabel)
+                    .map(MatchDto::getLabel)
                     .collect(Collectors.toList());
 
             m.setPreviousMatchLabels(previousMatchLabels);
 
         });
-        return matchDtoList;
+        return MatchListDto.builder()
+                .matches(matchDtos)
+                .build();
     }
+
 
     @Override
     public MatchDto findById(Long tournamentId, Long matchId) {
@@ -74,12 +80,6 @@ public class MatchServiceImpl implements MatchService {
         Match match = dataHelperService.findMatchByIdOrThrowException(matchId);
         checkIfMatchBelongsToTournament(tournamentId, match);
         return matchMapper.matchToDto(match);
-    }
-
-    @Override
-    public void saveAll(List<Match> matches) {
-
-        matchRepository.saveAll(matches);
     }
 
     @Override

@@ -62,7 +62,7 @@ public class ParticipantServiceImplTest {
                         .id(tournamentId)
                         .build());
 
-        participantService.findAllByTournamentIdDto(tournamentId);
+        participantService.findParticipantListByTournamentId(tournamentId);
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
         verify(participantRepository, times(1)).findAllByTournamentId(tournamentId);
 

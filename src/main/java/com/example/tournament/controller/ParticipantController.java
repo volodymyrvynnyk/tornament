@@ -2,6 +2,7 @@ package com.example.tournament.controller;
 
 import com.example.tournament.dto.form.ParticipantsAddForm;
 import com.example.tournament.dto.response.ParticipantDto;
+import com.example.tournament.dto.response.ParticipantListDto;
 import com.example.tournament.service.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/tournaments/{tournamentId}/participants", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -29,8 +28,8 @@ public class ParticipantController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ParticipantDto> findAllByTournament(@PathVariable Long tournamentId) {
-        return participantService.findAllByTournamentIdDto(tournamentId);
+    public ParticipantListDto findAllByTournament(@PathVariable Long tournamentId) {
+        return participantService.findParticipantListByTournamentId(tournamentId);
     }
 
     @GetMapping("/{participantId}")
@@ -41,7 +40,7 @@ public class ParticipantController {
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<ParticipantDto> addParticipants(@PathVariable Long tournamentId, @RequestBody ParticipantsAddForm participantsAddForm) {
+    public ParticipantListDto addParticipants(@PathVariable Long tournamentId, @RequestBody ParticipantsAddForm participantsAddForm) {
         return participantService.createAll(tournamentId, participantsAddForm);
     }
 
