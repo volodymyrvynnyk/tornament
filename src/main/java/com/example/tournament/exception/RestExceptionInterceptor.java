@@ -27,7 +27,7 @@ public class RestExceptionInterceptor {
                 .collect(Collectors.toList());
         return ErrorResponse.builder()
                 .message("Validation errors: " + String.join(", ", validationErrors))
-                .status(500)
+                .status(400)
                 .build();
     }
 
