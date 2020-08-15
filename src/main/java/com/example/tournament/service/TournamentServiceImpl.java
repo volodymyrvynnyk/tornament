@@ -129,21 +129,27 @@ public class TournamentServiceImpl implements TournamentService {
     public TournamentResultDto summarizeTournament(Long tournamentId) {
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
+        if (tournament.getStatus().equals(EventStatus.PENDING)) {
+            throw new ServiceException(String.format("Tournament (id '%s') has't been started", tournamentId));
+        }
 
         Match finalMatch = matchService.findFinalMatchByTournamentId(tournament.getId());
-
         if (!finalMatch.getStatus().equals(EventStatus.COMPLETED)) {
             throw new ServiceException(String.format("Final match of tournament (id '%s') has't finished", tournamentId));
         }
 
-        Tournament finishedTournament = tournament.toBuilder()
-                .status(EventStatus.COMPLETED)
-                .build();
+        if (!tournament.getStatus().equals(EventStatus.COMPLETED)) {
 
-        tournamentRepository.save(finishedTournament);
+            tournament = tournament.toBuilder()
+                    .status(EventStatus.COMPLETED)
+                    .build();
+            tournamentRepository.save(tournament);
+        }
 
         return TournamentResultDto.builder()
-                .tournament(tournamentMapper.tournamentToDto(finishedTournament))
+                .tournament(tournamentMapper.tournamentToDto(tournament).toBuilder()
+                        .numberOfParticipants(participantService.countByTournamentId(tournament.getId()))
+                        .build())
                 .matches(matchService.findAllByTournamentId(tournament.getId()))
                 .winner(participantService.findById(tournament.getId(), finalMatch.getWinnerId()))
                 .build();

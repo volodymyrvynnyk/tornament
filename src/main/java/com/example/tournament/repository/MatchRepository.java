@@ -1,6 +1,5 @@
 package com.example.tournament.repository;
 
-import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,8 +12,8 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     void deleteAllByTournamentId(Long tournamentId);
 
-    Optional<Match> findByFirstParticipantIdOrSecondParticipantIdAndStatusNot(Long firstParticipantId,
-                                                                           Long secondParticipantId, EventStatus status);
+    List<Match> findByFirstParticipantIdOrSecondParticipantId(Long firstParticipantId,
+                                                              Long secondParticipantId);
 
     Optional<Match> findByNextMatchLabelIsNullAndTournamentId(Long tournamentId);
 }

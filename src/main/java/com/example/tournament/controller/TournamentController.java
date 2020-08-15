@@ -4,6 +4,7 @@ package com.example.tournament.controller;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.TournamentDto;
+import com.example.tournament.dto.response.TournamentResultDto;
 import com.example.tournament.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -50,5 +51,10 @@ public class TournamentController {
     @PostMapping("/{id}/start")
     public List<MatchDto> start(@PathVariable Long id) {
         return tournamentService.startTournament(id);
+    }
+
+    @GetMapping("/{id}/summarize")
+    public TournamentResultDto summarize(@PathVariable Long id) {
+        return tournamentService.summarizeTournament(id);
     }
 }

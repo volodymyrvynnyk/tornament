@@ -115,6 +115,7 @@ public class TournamentServiceImplTest {
 
         Tournament tournament = Tournament.builder()
                 .id(1l)
+                .status(EventStatus.STARTED)
                 .build();
 
         when(dataHelperService.findTournamentByIdOrThrowException(tournament.getId()))
@@ -128,6 +129,9 @@ public class TournamentServiceImplTest {
                         .winnerId(1l)
                         .build()
                 );
+
+        when(tournamentMapper.tournamentToDto(any(Tournament.class)))
+                .thenReturn(TournamentDto.builder().build());
 
         tournamentService.summarizeTournament(tournament.getId());
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournament.getId());
@@ -150,5 +154,4 @@ public class TournamentServiceImplTest {
         verify(matchService, times(1)).deleteAllByTournamentId(tournamentId);
         verify(tournamentRepository, times(1)).deleteById(tournamentId);
     }
-
 }

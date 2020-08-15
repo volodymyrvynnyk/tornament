@@ -83,6 +83,7 @@ public class MatchServiceImplTest {
         Match match = Match.builder()
                 .id(matchId)
                 .tournamentId(tournamentId)
+                .status(EventStatus.PENDING)
                 .build();
 
         when(dataHelperService.findMatchByIdOrThrowException(matchId))
@@ -160,9 +161,9 @@ public class MatchServiceImplTest {
         Character nextMatchLabel = 'C';
 
         MatchUpdateForm matchUpdateForm = MatchUpdateForm.builder()
-                .firstParticipantScore(1)
-                .secondParticipantScore(0)
-                .winnerId(1l)
+                .firstParticipantScore(2)
+                .secondParticipantScore(3)
+                .finished(true)
                 .build();
 
         Match matchFromDb = Match.builder()

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,17 +17,15 @@ public class MatchDto {
 
     private Long id;
 
-    private char label;
+    private Character label;
 
-    private char nextMatchLabel;
+    private Character nextMatchLabel;
 
     private Long firstParticipantId;
 
     private Long secondParticipantId;
 
-    private String firstParticipant;
-
-    private String secondParticipant;
+    private List<Character> previousMatchLabels;
 
     private String score;
 
@@ -37,6 +36,5 @@ public class MatchDto {
     private LocalTime finish;
 
     private EventStatus status;
-
 
 }

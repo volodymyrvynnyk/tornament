@@ -19,5 +19,5 @@ public class MatchUpdateForm {
     @PositiveOrZero(message = "Score can't be negative")
     private int secondParticipantScore;
 
-    private Long winnerId;
+    private boolean finished;
 }

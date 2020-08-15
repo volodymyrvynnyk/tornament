@@ -37,8 +37,6 @@ public class MatchServiceImpl implements MatchService {
 
     private final DataValidator dataValidator;
 
-    private static final String REF_TO_PREV_MATCH_MESSAGE = "Winner of match '%s'";
-
     @Autowired
     public MatchServiceImpl(MatchRepository matchRepository, DataHelperService dataHelperService, MatchMapper matchMapper, DataValidator dataValidator) {
         this.matchRepository = matchRepository;
@@ -56,23 +54,26 @@ public class MatchServiceImpl implements MatchService {
 
         matchDtoList.forEach(m -> {
 
-            List<Match> matchesBeforeThisOne = matches.stream().
-                    filter(match -> match.getNextMatchLabel() == m.getLabel())
+            List<Character> previousMatchLabels = matches.stream()
+                    .filter(match -> !isNull(match.getNextMatchLabel()))
+                    .filter(match -> match.getNextMatchLabel().equals(m.getLabel()))
+                    .map(Match::getLabel)
                     .collect(Collectors.toList());
 
-            if (isNull(m.getFirstParticipantId()) && isNull(m.getSecondParticipantId())) {
-                m.setFirstParticipant(String.format(REF_TO_PREV_MATCH_MESSAGE, matchesBeforeThisOne.get(0).getLabel()));
-                m.setSecondParticipant(String.format(REF_TO_PREV_MATCH_MESSAGE, matchesBeforeThisOne.get(1).getLabel()));
-            } else {
-                if (isNull(m.getFirstParticipantId())) {
-                    m.setFirstParticipant(String.format(REF_TO_PREV_MATCH_MESSAGE, matchesBeforeThisOne.get(0).getLabel()));
-                }
-                if (isNull(m.getSecondParticipantId())) {
-                    m.setSecondParticipant(String.format(REF_TO_PREV_MATCH_MESSAGE, matchesBeforeThisOne.get(0).getLabel()));
-                }
-            }
+            m.setPreviousMatchLabels(previousMatchLabels);
+
         });
         return matchDtoList;
+    }
+
+    @Override
+    public MatchDto findById(Long tournamentId, Long matchId) {
+
+        dataHelperService.findTournamentByIdOrThrowException(tournamentId);
+
+        Match match = dataHelperService.findMatchByIdOrThrowException(matchId);
+        checkIfMatchBelongsToTournament(tournamentId, match);
+        return matchMapper.matchToDto(match);
     }
 
     @Override
@@ -85,6 +86,10 @@ public class MatchServiceImpl implements MatchService {
     public MatchDto startMatch(Long tournamentId, Long matchId) {
 
         Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(matchId);
+
+        if (!matchFromDb.getStatus().equals(EventStatus.PENDING)) {
+            throw new ServiceException(String.format("Match (id '%s') has been already started", matchFromDb.getId()));
+        }
 
         checkIfMatchBelongsToTournament(tournamentId, matchFromDb);
 
@@ -132,9 +137,12 @@ public class MatchServiceImpl implements MatchService {
                 .secondParticipantScore(matchUpdateForm.getSecondParticipantScore())
                 .build();
 
-        if (!isNull(matchUpdateForm.getWinnerId())) {
+        if (matchUpdateForm.isFinished()) {
 
-            updatedMatch = finishMatch(updatedMatch, matchUpdateForm.getWinnerId());
+            Long winnerId = updatedMatch.getFirstParticipantScore() > updatedMatch.getSecondParticipantScore() ?
+                    updatedMatch.getFirstParticipantId() : updatedMatch.getSecondParticipantId();
+
+            updatedMatch = finishMatch(updatedMatch, winnerId);
         }
 
         matchRepository.save(updatedMatch);
@@ -182,8 +190,19 @@ public class MatchServiceImpl implements MatchService {
     @Override
     public Optional<Match> findUncompletedMatchByParticipantId(Long tournamentId, Long participantId) {
 
-        return matchRepository.findByFirstParticipantIdOrSecondParticipantIdAndStatusNot(participantId,
-                participantId, EventStatus.COMPLETED);
+        List<Match> matchList = matchRepository.findByFirstParticipantIdOrSecondParticipantId(participantId,
+                participantId).stream()
+                .filter(match -> !match.getStatus().equals(EventStatus.COMPLETED))
+                .collect(Collectors.toList());
+
+        if (matchList.size() > 1) {
+            throw new ServiceException(String.format("Participant (id '%s') belongs to more than one uncompleted matches"));
+        }
+
+        if (matchList.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(matchList.get(0));
     }
 
     @Override

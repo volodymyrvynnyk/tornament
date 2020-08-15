@@ -30,7 +30,13 @@ public class MatchController {
         return matchService.findAllByTournamentId(tournamentId);
     }
 
-    @PostMapping("/start/{matchId}")
+    @GetMapping("/{matchId}")
+    public MatchDto findById(@PathVariable Long tournamentId, @PathVariable Long matchId) {
+
+        return matchService.findById(tournamentId, matchId);
+    }
+
+    @PostMapping("/{matchId}/start")
     public MatchDto start(@PathVariable Long tournamentId, @PathVariable Long matchId) {
 
         return matchService.startMatch(tournamentId, matchId);
