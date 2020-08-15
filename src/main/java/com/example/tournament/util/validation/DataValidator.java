@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class DataValidator {
 
-    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     public <T> ValidationResult validate(T data) {
 

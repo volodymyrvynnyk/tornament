@@ -3,6 +3,7 @@ package com.example.tournament.service;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.dto.response.TournamentDto;
+import com.example.tournament.dto.response.TournamentListDto;
 import com.example.tournament.dto.response.TournamentResultDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.model.EventStatus;
@@ -48,14 +49,16 @@ public class TournamentServiceImpl implements TournamentService {
 
 
     @Override
-    public List<TournamentDto> findAll() {
+    public TournamentListDto findAll() {
 
         List<Tournament> tournaments = tournamentRepository.findAll();
         List<TournamentDto> tournamentDtos = tournamentMapper.tournamentListToDto(tournaments);
 
         tournamentDtos.forEach(this::setNumberOfParticipants);
 
-        return tournamentDtos;
+        return TournamentListDto.builder()
+                .tournaments(tournamentDtos)
+                .build();
     }
 
     @Override

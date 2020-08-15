@@ -10,10 +10,6 @@ public class ValidationResult {
 
     private String errorMessage;
 
-    public boolean isError() {
-        return StringUtils.isNotBlank(errorMessage);
-    }
-
     public static ValidationResult valid() {
         return ValidationResult.builder().build();
     }
@@ -22,6 +18,10 @@ public class ValidationResult {
         return ValidationResult.builder()
                 .errorMessage(errorMessage)
                 .build();
+    }
+
+    public boolean isError() {
+        return StringUtils.isNotBlank(errorMessage);
     }
 
 }
