@@ -7,6 +7,7 @@ import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.service.MatchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +50,7 @@ public class MatchController {
     @PostMapping("/update/{matchId}")
     @ResponseStatus(HttpStatus.CREATED)
     public MatchDto update(@PathVariable Long tournamentId, @PathVariable Long matchId,
-                           @RequestBody MatchUpdateForm matchUpdateForm) {
+                           @RequestBody @Validated MatchUpdateForm matchUpdateForm) {
 
         return matchService.updateMatch(tournamentId, matchId, matchUpdateForm);
     }

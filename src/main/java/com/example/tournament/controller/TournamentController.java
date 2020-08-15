@@ -4,6 +4,7 @@ package com.example.tournament.controller;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchListDto;
 import com.example.tournament.dto.response.TournamentDto;
+import com.example.tournament.dto.response.TournamentListDto;
 import com.example.tournament.dto.response.TournamentResultDto;
 import com.example.tournament.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class TournamentController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public List<TournamentDto> findAll() {
+    public TournamentListDto findAll() {
         return tournamentService.findAll();
     }
 

@@ -114,11 +114,11 @@ public class MatchServiceImpl implements MatchService {
     @Transactional
     public MatchDto updateMatch(Long tournamentId, Long matchId, MatchUpdateForm matchUpdateForm) {
 
-        ValidationResult validationResult = dataValidator.validate(matchUpdateForm);
-
-        if (validationResult.isError()) {
-            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
-        }
+//        ValidationResult validationResult = dataValidator.validate(matchUpdateForm);
+//
+//        if (validationResult.isError()) {
+//            throw new ServiceException("Validation error: " + validationResult.getErrorMessage());
+//        }
 
         Match matchFromDb = dataHelperService.findMatchByIdOrThrowException(matchId);
 
