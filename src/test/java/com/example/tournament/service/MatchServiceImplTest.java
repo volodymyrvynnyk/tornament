@@ -12,6 +12,8 @@ import com.example.tournament.util.validation.DataValidator;
 import com.example.tournament.util.validation.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -42,6 +44,9 @@ public class MatchServiceImplTest {
 
     @Mock
     private DataValidator dataValidator;
+
+    @Captor
+    private ArgumentCaptor<List<Match>> matchListArgumentCaptor;
 
     @InjectMocks
     private MatchServiceImpl matchService;
@@ -133,6 +138,7 @@ public class MatchServiceImplTest {
                 .tournamentId(tournamentId)
                 .firstParticipantId(1l)
                 .secondParticipantId(2l)
+                .status(EventStatus.STARTED)
                 .build();
 
         when(dataValidator.validate(matchUpdateForm)).thenReturn(ValidationResult.valid());
@@ -236,7 +242,11 @@ public class MatchServiceImplTest {
                 Match.builder().label('F').build()
         );
 
-        List<Match> matches = matchService.generateMatches(participants, tournament);
+        when(matchRepository.saveAll(matchListArgumentCaptor.capture())).thenReturn(new ArrayList<>());
+
+        matchService.generateMatches(participants, tournament);
+
+        List<Match> matches = matchListArgumentCaptor.getValue();
         matches.sort(Comparator.comparingInt(Match::getLabel));
 
         for (int i = 0; i < tournament.getNumberOfSingleEliminationMatches(); i++) {

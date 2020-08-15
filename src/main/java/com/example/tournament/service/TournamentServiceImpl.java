@@ -3,6 +3,7 @@ package com.example.tournament.service;
 import com.example.tournament.dto.form.TournamentCreateForm;
 import com.example.tournament.dto.response.MatchDto;
 import com.example.tournament.dto.response.TournamentDto;
+import com.example.tournament.dto.response.TournamentResultDto;
 import com.example.tournament.exception.ServiceException;
 import com.example.tournament.model.EventStatus;
 import com.example.tournament.model.Match;
@@ -72,11 +73,15 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
-    public List<MatchDto> start(Long id) {
+    public List<MatchDto> startTournament(Long id) {
 
         Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(id);
 
-        int participantsNumber = participantService.countByTournamentId(id);
+        if (!tournament.getStatus().equals(EventStatus.PENDING)) {
+            throw new ServiceException("Tournament (id '%s') has been already started");
+        }
+
+        int participantsNumber = participantService.countByTournamentId(tournament.getId());
 
         if (participantsNumber < 2) {
             throw new ServiceException("Tournament (id '%s') must contain at least 2 participants");
@@ -90,8 +95,7 @@ public class TournamentServiceImpl implements TournamentService {
         tournamentRepository.save(updatedTournament);
 
         List<Participant> participants = participantService.findAllByTournamentId(updatedTournament.getId());
-        List<Match> matches = matchService.generateMatches(participants, tournament);
-        matchService.saveAll(matches);
+        matchService.generateMatches(participants, tournament);
 
         return matchService.findAllByTournamentId(tournament.getId());
     }
@@ -122,14 +126,14 @@ public class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
-    public Long summarize(Long id) {
+    public TournamentResultDto summarizeTournament(Long tournamentId) {
 
-        Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(id);
+        Tournament tournament = dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
         Match finalMatch = matchService.findFinalMatchByTournamentId(tournament.getId());
 
         if (!finalMatch.getStatus().equals(EventStatus.COMPLETED)) {
-            throw new ServiceException(String.format("Final match of tournament (id '%s') has't finished", id));
+            throw new ServiceException(String.format("Final match of tournament (id '%s') has't finished", tournamentId));
         }
 
         Tournament finishedTournament = tournament.toBuilder()
@@ -138,21 +142,23 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournamentRepository.save(finishedTournament);
 
-        return finalMatch.getWinnerId();
+        return TournamentResultDto.builder()
+                .tournament(tournamentMapper.tournamentToDto(finishedTournament))
+                .matches(matchService.findAllByTournamentId(tournament.getId()))
+                .winner(participantService.findById(tournament.getId(), finalMatch.getWinnerId()))
+                .build();
     }
 
 
     @Override
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long tournamentId) {
 
-        if (!tournamentRepository.existsById(id)) {
-            throw new ServiceException(String.format("Tournament with id %s not found", id));
-        }
+        dataHelperService.findTournamentByIdOrThrowException(tournamentId);
 
-        participantService.deleteAllByTournamentId(id);
-        matchService.deleteAllByTournamentId(id);
-        tournamentRepository.deleteById(id);
+        participantService.deleteAllByTournamentId(tournamentId);
+        matchService.deleteAllByTournamentId(tournamentId);
+        tournamentRepository.deleteById(tournamentId);
     }
 
 }

@@ -263,11 +263,8 @@ public class MatchServiceImpl implements MatchService {
                     match.setNextMatchLabel(label);
                 }
             }
-
-
         }
 
-        matchRepository.saveAll(matches);
-        return matches;
+        return matchRepository.saveAll(matches);
     }
 }

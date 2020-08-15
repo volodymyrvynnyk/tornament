@@ -49,6 +49,6 @@ public class TournamentController {
 
     @PostMapping("/{id}/start")
     public List<MatchDto> start(@PathVariable Long id) {
-        return tournamentService.start(id);
+        return tournamentService.startTournament(id);
     }
 }

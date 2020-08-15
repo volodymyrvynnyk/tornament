@@ -11,7 +11,6 @@ import com.example.tournament.util.validation.DataValidator;
 import com.example.tournament.util.validation.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -29,7 +28,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ParticipantServiceImplTest {
 
     @Mock
@@ -52,7 +50,6 @@ public class ParticipantServiceImplTest {
 
     @BeforeEach
     void setUp() {
-
         MockitoAnnotations.initMocks(this);
     }
 
@@ -60,6 +57,11 @@ public class ParticipantServiceImplTest {
     public void findAllByTournamentIdDtoTest() {
 
         Long tournamentId = 1l;
+        when(dataHelperService.findTournamentByIdOrThrowException(tournamentId))
+                .thenReturn(Tournament.builder()
+                        .id(tournamentId)
+                        .build());
+
         participantService.findAllByTournamentIdDto(tournamentId);
         verify(dataHelperService, times(1)).findTournamentByIdOrThrowException(tournamentId);
         verify(participantRepository, times(1)).findAllByTournamentId(tournamentId);
@@ -159,19 +161,23 @@ public class ParticipantServiceImplTest {
     }
 
     @Test
-    public void createAll_ValidationErrorFlow() {
+    public void createAll_DuplicatesExceptionFlow() {
 
         Long tournamentId = 1l;
         ParticipantsAddForm participantsAddForm = ParticipantsAddForm.builder()
+                .names(Arrays.asList("Player1", "Player1", "Player3", "Player4", "Player5", "Player6", "Player7"))
                 .build();
-
-        when(dataValidator.validate(participantsAddForm))
-                .thenReturn(ValidationResult.withError("Some errors"));
 
         Exception exception = assertThrows(ServiceException.class, () -> {
             participantService.createAll(tournamentId, participantsAddForm);
         });
+
         verify(dataValidator, times(1)).validate(participantsAddForm);
+
+        String expectedMessage = "Participants list has duplicates";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
