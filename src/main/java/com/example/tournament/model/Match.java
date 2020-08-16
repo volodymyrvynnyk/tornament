@@ -16,6 +16,7 @@ import javax.persistence.Table;
 import java.time.LocalTime;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Data
 @Entity
@@ -62,6 +63,17 @@ public class Match {
                 throw new ServiceException(String.format("Match (id '%s') already has got 2 participants", this.id));
             }
         }
+    }
+
+    public int getNumberOfParticipants() {
+        int numberOfParticipants = 0;
+        if (nonNull(firstParticipantId)) {
+            numberOfParticipants++;
+        }
+        if (nonNull(secondParticipantId)) {
+            numberOfParticipants++;
+        }
+        return numberOfParticipants;
     }
 
 }

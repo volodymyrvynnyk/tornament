@@ -15,11 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -218,58 +219,48 @@ public class MatchServiceImpl implements MatchService {
         Collections.shuffle(participants);
 
         List<Match> matches = new ArrayList<>(tournament.getNumberOfSingleEliminationMatches());
+        Queue<Participant> participantQueue = new ArrayDeque<>(participants);
 
         char label = 'A';
-
         for (int i = 0; i < tournament.getNumberOfSingleEliminationMatches(); i++) {
-            if (i < participants.size() / 2) {
-                matches.add(Match.builder()
-                        .tournamentId(tournament.getId())
-                        .label(label++)
-                        .firstParticipantId(participants.get(i * 2).getId())
-                        .secondParticipantId(participants.get(i * 2 + 1).getId())
-                        .status(EventStatus.PENDING)
-                        .build()
-                );
-            } else {
-                if (participants.size() > i * 2) {
-                    matches.add(Match.builder()
-                            .tournamentId(tournament.getId())
-                            .label(label++)
-                            .firstParticipantId(participants.get(i * 2).getId())
-                            .status(EventStatus.PENDING)
-                            .build()
-                    );
-                } else {
-                    matches.add(Match.builder()
-                            .tournamentId(tournament.getId())
-                            .status(EventStatus.PENDING)
-                            .label(label++)
-                            .build()
-                    );
-                }
+
+            Match match = Match.builder()
+                    .tournamentId(tournament.getId())
+                    .label(label++)
+                    .status(EventStatus.PENDING)
+                    .build();
+
+            if (!participantQueue.isEmpty()) {
+                match.addParticipant(participantQueue.poll().getId());
             }
+            if (!participantQueue.isEmpty()) {
+                match.addParticipant(participantQueue.poll().getId());
+            }
+            matches.add(match);
+
         }
 
-        label = (char) ('A' + participants.size() / 2); //Second tour label
+        char nextMatchLabel = (char) ('A' + participants.size() / 2); //Second tour first match label
 
         for (Match match : matches) {
 
-            final char ctemp = label;
+            final Character nextMatchLabelFinal = nextMatchLabel;
+            long numberOfParticipants = matches.stream()
+                    .filter(m -> nonNull(m.getNextMatchLabel()) && m.getNextMatchLabel().equals(nextMatchLabelFinal))
+                    .count();
 
-            long numberOfPotentialParticipants = matches.stream().filter(m -> nonNull(m.getNextMatchLabel()) && m.getNextMatchLabel() == ctemp).count();
+            numberOfParticipants += matches.stream()
+                    .filter(m -> m.getLabel().equals(nextMatchLabelFinal))
+                    .findFirst()
+                    .orElse(Match.builder().build())
+                    .getNumberOfParticipants();
 
-            Optional<Match> optionalMatchToFollow = matches.stream().filter(m -> m.getLabel() == ctemp).findFirst();
+            if (numberOfParticipants == 2) {
+                nextMatchLabel++;
+            }
 
-            if (optionalMatchToFollow.isPresent()) {
-                Match matchToFollow = optionalMatchToFollow.get();
-                numberOfPotentialParticipants += Objects.nonNull(matchToFollow.getFirstParticipantId()) ? 1 : 0;
-                numberOfPotentialParticipants += Objects.nonNull(matchToFollow.getSecondParticipantId()) ? 1 : 0;
-                label += numberOfPotentialParticipants == 2 ? 1 : 0;
-
-                if (matches.size() - 1 != matches.indexOf(match)) {
-                    match.setNextMatchLabel(label);
-                }
+            if (matches.size() - 1 > matches.indexOf(match)) { //Avoid setting nextMatchLabel to final match
+                match.setNextMatchLabel(nextMatchLabel);
             }
         }
 

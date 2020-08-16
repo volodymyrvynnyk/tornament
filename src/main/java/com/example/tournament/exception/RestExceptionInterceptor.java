@@ -32,6 +32,4 @@ public class RestExceptionInterceptor {
                 .message("Validation errors: " + String.join(", ", validationErrors))
                 .build();
     }
-
-
 }
